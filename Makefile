@@ -7,9 +7,9 @@ build:
 .PHONY: run
 run:
 	$(MAKE) build
-	./k8sfsm job1/input.yaml job1/output.yaml
-	./k8sfsm job2/input.yaml job2/output.yaml
-	./k8sfsm job3/input.yaml job3/output.yaml
+	./k8sfsm examples/job1/input.yaml examples/job1/output.yaml
+	./k8sfsm examples/job2/input.yaml examples/job2/output.yaml
+	./k8sfsm examples/job3/input.yaml examples/job3/output.yaml
 
 .PHONY: create-cluster
 create-cluster:
