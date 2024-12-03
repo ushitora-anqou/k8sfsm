@@ -1,0 +1,16 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: FIXME
+  namespace: FIXME
+spec:
+  template:
+    spec:
+      containers:
+      - command:
+        - bash
+        - -c
+        - sleep 1
+        image: ubuntu:22.04
+        name: ubuntu
+      restartPolicy: Never
