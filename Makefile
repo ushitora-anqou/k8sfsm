@@ -1,8 +1,15 @@
 KIND_CLUSTER_NAME := k8sfsm
 
+.PHONY: build
+build:
+	go build
+
 .PHONY: run
 run:
-	go run main.go
+	$(MAKE) build
+	./k8sfsm job1/input.yaml job1/output.yaml
+	./k8sfsm job2/input.yaml job2/output.yaml
+	./k8sfsm job3/input.yaml job3/output.yaml
 
 .PHONY: create-cluster
 create-cluster:

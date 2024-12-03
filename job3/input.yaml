@@ -4,14 +4,15 @@ metadata:
   name: FIXME
   namespace: FIXME
 spec:
+  backoffLimit: 10
   template:
     spec:
       containers:
       - command:
         - bash
         - -c
-        - sleep 1
-        image: ubuntu:22.04
+        - exit 1
+        image: non-existing-image
         name: ubuntu
-      restartPolicy: Never
-      imagePullPolicy: Never
+      restartPolicy: OnFailure
+      imagePullPolicy: Always

@@ -38,6 +38,15 @@ func GetUniqueName(prefix string) string {
 }
 
 func doMain() error {
+	var (
+		namespace string
+		retries   int
+		interval  string
+	)
+	flag.StringVar(&namespace, "namespace", "default", "namespace in which resources are created")
+	flag.IntVar(&retries, "retries", 10, "how many times GET should be repeated")
+	flag.StringVar(&interval, "interval", "1s", "how long we should wait between each GET")
+
 	var kubeconfig *string
 	if home := homedir.HomeDir(); home != "" {
 		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
@@ -45,6 +54,17 @@ func doMain() error {
 		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
 	}
 	flag.Parse()
+
+	if flag.NArg() != 2 {
+		return fmt.Errorf("Usage: k8sfsm INPUT-YAML-FILE OUTPUT-JSON-FILE")
+	}
+	inputFilePath := flag.Arg(0)
+	outputFilePath := flag.Arg(1)
+
+	intervalParsed, err := time.ParseDuration(interval)
+	if err != nil {
+		return err
+	}
 
 	// use the current context in kubeconfig
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
@@ -57,10 +77,7 @@ func doMain() error {
 		return err
 	}
 
-	inputFilePath := "job1/input.yaml"
-	outputFilePath := "job1/output.yaml"
 	name := GetUniqueName("job-")
-	namespace := "default"
 
 	inputYaml, err := os.ReadFile(inputFilePath)
 	if err != nil {
@@ -76,13 +93,13 @@ func doMain() error {
 		return err
 	}
 
-	outputFile, err := os.OpenFile(outputFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	outputFile, err := os.OpenFile(outputFilePath, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0o644)
 	if err != nil {
 		return err
 	}
 	defer outputFile.Close()
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < retries; i++ {
 		var job batchv1.Job
 		if err := client.Get(context.Background(), types.NamespacedName{Name: name, Namespace: namespace}, &job); err != nil {
 			return err
@@ -97,7 +114,7 @@ func doMain() error {
 		}
 		fmt.Printf("%s\n", b)
 
-		time.Sleep(1 * time.Second)
+		time.Sleep(intervalParsed)
 	}
 
 	return nil
